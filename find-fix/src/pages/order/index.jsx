@@ -20,6 +20,8 @@ import {
   MdRateReview,
   MdOutlineMiscellaneousServices,
 } from "react-icons/md";
+import { PiGearBold } from "react-icons/pi";
+import { BiMoneyWithdraw } from "react-icons/bi";
 import LayoutAdmin from "@/components/LayoutAdmin/Index";
 import {
   addReview,
@@ -160,6 +162,41 @@ export default function OrdersAll() {
     }
   };
 
+  const handleWaitingPaymentStatus = async (orderId) => {
+    try {
+      await putStatus(orderId, "Done");
+      toast.success("Order Done successfully!");
+      const updatedOrders = await getOrderAll();
+      setOrders(updatedOrders);
+      window.location.reload();
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+      }
+    }
+  };
+  const handleCancelStatus = async (orderId) => {
+    try {
+      await putStatus(orderId, "Cancel");
+      toast.success("Order Cancel successfully!");
+      const updatedOrders = await getOrderAll();
+      setOrders(updatedOrders);
+      window.location.reload();
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+      }
+    }
+  };
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setPaymentReceipt(file);
@@ -170,9 +207,6 @@ export default function OrdersAll() {
       try {
         await uploadPaymentReceipt(orderId, paymentReceipt);
         toast.success("Payment receipt uploaded successfully!");
-        await putStatus(orderId, "Done");
-        const updatedOrders = await getOrderAll();
-        setOrders(updatedOrders);
         window.location.reload();
       } catch (error) {
         if (
@@ -216,7 +250,6 @@ export default function OrdersAll() {
   };
 
   const openModal = (orderId) => {
-    console.log(orderId);
     setSelectedOrderId(orderId);
     setIsModalOpen(true);
   };
@@ -281,6 +314,7 @@ export default function OrdersAll() {
                   <option value="Process">Process</option>
                   <option value="Waiting Payment">Waiting Payment</option>
                   <option value="Done">Done</option>
+                  <option value="Cancel">Cancel</option>
                 </select>
               </div>
             </div>
@@ -303,17 +337,19 @@ export default function OrdersAll() {
                       <div className="flex gap-3 mb-2 text-lg">
                         <MdLocalShipping className="mt-1" />
                         <span
-                          className={`font-bold px-2 rounded-md ${
+                          className={`font-bold px-2 rounded-md text-white ${
                             order.status === "Done"
-                              ? "bg-green-200"
+                              ? "bg-green-600"
                               : order.status === "Process"
                               ? "bg-yellow-200"
                               : order.status === "Waiting"
-                              ? "bg-white"
+                              ? "bg-black "
                               : order.status === "Accepted"
-                              ? "bg-blue-200"
+                              ? "bg-blue-600"
                               : order.status === "Waiting Payment"
-                              ? "bg-red-200"
+                              ? "bg-purple-600"
+                              : order.status === "Cancel"
+                              ? "bg-red-600"
                               : ""
                           }`}
                         >
@@ -323,51 +359,76 @@ export default function OrdersAll() {
                       <div>
                         {profileData &&
                           profileData?.role === "admin" &&
+                          (order.status === "Accepted" ||
+                            order.status === "Process" ||
+                            order.status === "Waiting Payment") && (
+                            <button
+                              className="py-2 px-4 ml-4 rounded-md hover:font-semibold bg-blue-500 hover:bg-blue-600 text-white"
+                              onClick={() => openModal(order.id)}
+                            >
+                              Add Spare Part
+                            </button>
+                          )}
+                        {profileData &&
+                          profileData?.role === "admin" &&
                           order.status === "Waiting" && (
                             <button
-                              className="py-2 px-4 ml-4 rounded-md hover:font-semibold bg-gray-500 hover:bg-gray-600 text-white"
+                              className="py-2 px-4 ml-4 rounded-md hover:font-semibold bg-green-500 hover:bg-green-600 text-white"
                               onClick={() => handleWaitingtatus(order.id)}
                             >
-                              Accept Waiting
+                              Change Status
                             </button>
                           )}
                         {profileData &&
                           profileData?.role === "admin" &&
                           order.status === "Accepted" && (
                             <button
-                              className="py-2 px-4 ml-4 rounded-md hover:font-semibold bg-blue-500 hover:bg-blue-600 text-white"
+                              className="py-2 px-4 ml-4 rounded-md hover:font-semibold bg-green-500 hover:bg-green-600 text-white"
                               onClick={() => handleAcceptedStatus(order.id)}
                             >
-                              Accept
+                              Change Status
                             </button>
                           )}
                         {profileData &&
                           profileData?.role === "admin" &&
                           order.status === "Process" && (
                             <button
-                              className="py-2 px-4 ml-4 rounded-md hover:font-semibold bg-yellow-500 hover:bg-yellow-600 text-white"
+                              className="py-2 px-4 ml-4 rounded-md hover:font-semibold bg-green-500 hover:bg-green-600 text-white"
                               onClick={() => handleInProgressStatus(order.id)}
                             >
-                              Accept Process
+                              Change Status
                             </button>
                           )}
 
                         {profileData &&
                           profileData?.role === "admin" &&
-                          (order.status === "Accepted" ||
-                            order.status === "Process" ||
-                            order.status === "Waiting Payment") && (
+                          order.status === "Waiting Payment" && (
                             <button
                               className="py-2 px-4 ml-4 rounded-md hover:font-semibold bg-green-500 hover:bg-green-600 text-white"
-                              onClick={() => openModal(order.id)}
+                              onClick={() =>
+                                handleWaitingPaymentStatus(order.id)
+                              }
                             >
-                              Add Spare Part
+                              Change Status
+                            </button>
+                          )}
+
+                        {profileData &&
+                          profileData?.role === "admin" &&
+                          order.status !== "Done" &&
+                          order.status !== "Cancel" && (
+                            <button
+                              className="py-2 px-4 ml-4 rounded-md hover:font-semibold bg-red-500 hover:bg-red-600 text-white"
+                              onClick={() => handleCancelStatus(order.id)}
+                            >
+                              Cancel
                             </button>
                           )}
 
                         {profileData &&
                           profileData?.role === "Customer" &&
-                          order.status === "Waiting Payment" && (
+                          order.status === "Waiting Payment" &&
+                          !order.paymentReceiptUrl && (
                             <div>
                               <input
                                 type="file"
@@ -407,6 +468,26 @@ export default function OrdersAll() {
                       <MdOutlineMiscellaneousServices className="mt-1" />
                       <span className="font-bold">{order.serviceTitle}</span>
                     </div>
+                    <div className="flex gap-3 mb-2 text-lg">
+                      {order?.spareParts &&
+                        order?.spareParts?.length > 0 &&
+                        order?.spareParts?.map((sparepart, index) => (
+                          <div
+                            key={index}
+                            className="flex flex-col md:flex-row gap-3"
+                          >
+                            <PiGearBold className="mt-1" />
+                            <span className="font-bold">
+                              {sparepart?.quantity}x
+                            </span>
+                            <span className="font-bold">{sparepart?.name}</span>
+                            <span className="font-bold">
+                              ${sparepart?.price}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+
                     <div className="flex items-center gap-3 mb-2 text-lg">
                       <BsCalendarFill />
                       <span className="font-bold">
@@ -424,15 +505,33 @@ export default function OrdersAll() {
                       <BsCreditCardFill className="mt-1" />
                       <span className="font-bold">{order.payment}</span>
                     </div>
+                    {(order.status === "Done" ||
+                      order.status === "Waiting Payment") &&
+                      order.paymentReceiptUrl && (
+                        <div className="flex gap-3 mb-2 text-lg">
+                          <BiMoneyWithdraw className="mt-1" />
+                          <span className="font-bold">
+                            <img
+                              src={order.paymentReceiptUrl}
+                              alt={order.serviceName}
+                              width={200}
+                              height={200}
+                              className="rounded-md mb-4"
+                            />
+                          </span>
+                        </div>
+                      )}
                     {order.status === "Done" && (
                       <div className="flex gap-3 mb-2 text-lg">
-                        <MdRateReview className="mt-1" />
+                        {order.review !== "" && (
+                          <MdRateReview className="mt-1" />
+                        )}
                         <span className="font-bold">{order.review}</span>
                       </div>
                     )}
                     {order.status === "Done" && (
                       <div className="flex gap-3 mb-2 text-lg">
-                        <BsStarFill className="mt-1" />
+                        {order.rating !== 0 && <BsStarFill className="mt-1" />}
                         {[...Array(order.rating)].map((_, index) => (
                           <BsStarFill
                             key={index}
@@ -442,7 +541,9 @@ export default function OrdersAll() {
                       </div>
                     )}
 
-                    {order.rating === 0 &&
+                    {profileData &&
+                      profileData?.role === "Customer" &&
+                      order.rating === 0 &&
                       order.review === "" &&
                       order.status === "Done" && (
                         <div className="space-y-4">

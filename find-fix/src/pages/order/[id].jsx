@@ -1,8 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import { getOrderById } from "../api/order";
-import { getToken } from "@/hooks/useToken";
 import {
   BsStarFill,
   BsStar,
@@ -18,17 +16,21 @@ import LayoutAdmin from "@/components/LayoutAdmin/Index";
 import SEO from "@/components/Seo";
 import UpdateAppointmentModal from "@/components/Modals/UpdateAppointmentModal";
 import { getProfile } from "../api/profile";
+import { getServiceById } from "../api/service";
+import { getOrderById } from "../api/order";
+import { getToken } from "@/hooks/useToken";
 
 export default function OrdersById() {
   const router = useRouter();
   const { id } = router.query;
   const [order, setOrder] = useState(null);
+  const [service, setService] = useState(null);
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchOrder = async () => {
+    const fetchOrderAndService = async () => {
       try {
         const token = getToken();
         if (!token) {
@@ -38,6 +40,10 @@ export default function OrdersById() {
         if (id) {
           const orderData = await getOrderById(id);
           setOrder(orderData);
+
+          const serviceData = await getServiceById(orderData.serviceId);
+          setService(serviceData);
+
           setLoading(false);
         }
       } catch (error) {
@@ -51,7 +57,7 @@ export default function OrdersById() {
       }
     };
 
-    fetchOrder();
+    fetchOrderAndService();
 
     const fetchProfileData = async () => {
       try {
@@ -69,8 +75,6 @@ export default function OrdersById() {
     };
     fetchProfileData();
   }, [id]);
-
-  console.log(profileData);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -143,7 +147,11 @@ export default function OrdersById() {
                     {formatDate(order.orderDate)}
                   </span>
                   <BsClockFill />
-                  <span className="font-bold">{order.orderTime}</span>
+                  <span className="font-bold">
+                    {Array.isArray(order.orderTime)
+                      ? order.orderTime.join(", ")
+                      : order.orderTime}
+                  </span>
                 </div>
                 <div className="flex gap-3 mb-2 text-lg">
                   <BsGeoAltFill className="mt-1" />
@@ -200,6 +208,8 @@ export default function OrdersById() {
           isOpen={isModalOpen}
           closeModal={closeModal}
           orderId={order && order.id}
+          openDates={service && service.openDateTime.map((od) => od.openDate)}
+          openTimes={service && service.openDateTime.map((od) => od.openTime)}
         />
       </section>
     </LayoutAdmin>

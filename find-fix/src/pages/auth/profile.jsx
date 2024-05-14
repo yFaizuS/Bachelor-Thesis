@@ -27,7 +27,6 @@ export default function Profile() {
 
     const fetchProfile = async () => {
       const profileData = await getProfile();
-      console.log(profileData);
       setProfile(profileData);
       setLoading(false);
     };

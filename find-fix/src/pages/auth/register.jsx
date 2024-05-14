@@ -16,7 +16,6 @@ export default function Register() {
 
   useEffect(() => {
     const token = getToken();
-    console.log(token);
     if (token) {
       router.push("/auth/profile");
       return;
@@ -27,7 +26,6 @@ export default function Register() {
     try {
       const data = await registerUser(name, email, password, nomor, alamat);
       toast.success("Register successfully!");
-      console.log("Register successfully! Token:", data.token);
     } catch (error) {
       if (
         error.response &&

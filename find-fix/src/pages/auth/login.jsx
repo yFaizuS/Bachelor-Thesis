@@ -13,7 +13,6 @@ export default function Login() {
 
   useEffect(() => {
     const token = getToken();
-    console.log(token);
     if (token) {
       router.push("/auth/profile");
       return;

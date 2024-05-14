@@ -22,6 +22,8 @@ export default function ServiceDetail() {
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [allOpenDates, setAllOpenDates] = useState([]);
+  const [allOpenTimes, setAllOpenTimes] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,6 +31,14 @@ export default function ServiceDetail() {
         if (id) {
           const serviceData = await getServiceById(id);
           setService(serviceData);
+          const openDates = serviceData?.openDateTime.map(
+            (dateTime) => dateTime.openDate
+          );
+          const openTimes = serviceData?.openDateTime.map(
+            (dateTime) => dateTime.openTime
+          );
+          setAllOpenDates(openDates);
+          setAllOpenTimes(openTimes);
           setLoading(false);
         }
       } catch (error) {
@@ -80,7 +90,7 @@ export default function ServiceDetail() {
             <p className="text-gray-700 mb-4">{service.description}</p>
             <div className="mb-2">
               <h3 className="text-lg font-semibold mb-2">Open Date and Time</h3>
-              {service.openDateTime.map((dateTime, index) => (
+              {service?.openDateTime?.map((dateTime, index) => (
                 <div key={index} className="flex items-center space-y-1">
                   <FaCalendarAlt className="text-orange-500 mr-2" />
                   <p className="text-base font-semibold mr-4">
@@ -133,6 +143,8 @@ export default function ServiceDetail() {
             closeModal={closeModal}
             reloadOrders={() => {}}
             selectedServiceId={id}
+            openDates={allOpenDates}
+            openTimes={allOpenTimes}
           />
         </section>
       )}

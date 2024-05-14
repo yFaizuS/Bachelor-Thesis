@@ -10,28 +10,52 @@ const CreateOrderModal = ({
   closeModal,
   reloadOrders,
   selectedServiceId,
+  openDates,
+  openTimes,
 }) => {
   const [formData, setFormData] = useState({
-    serviceId: "",
+    serviceId: selectedServiceId,
     name: "",
     phone: "",
     address: "",
     orderTime: "",
-    orderDate: new Date(),
+    orderDate:
+      openDates && openDates.length > 0 ? new Date(openDates[0]) : new Date(),
     paymentMethod: "",
     appointmentLoc: "",
   });
+  const [availableTimes, setAvailableTimes] = useState([]);
 
   useEffect(() => {
-    if (selectedServiceId) {
+    if (openDates && openDates.length > 0) {
       setFormData((prevFormData) => ({
         ...prevFormData,
-        serviceId: Array.isArray(selectedServiceId)
-          ? selectedServiceId[0]
-          : selectedServiceId,
+        orderDate: new Date(openDates[0]),
       }));
     }
-  }, [selectedServiceId]);
+    if (openTimes && openTimes.length > 0) {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        orderTime: openTimes[0][0],
+      }));
+    }
+  }, [openDates, openTimes]);
+
+  useEffect(() => {
+    const dateIndex = openDates.findIndex(
+      (dateStr) =>
+        new Date(dateStr).toDateString() === formData.orderDate.toDateString()
+    );
+    if (dateIndex !== -1) {
+      setAvailableTimes(openTimes[dateIndex]);
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        orderTime: openTimes[dateIndex][0],
+      }));
+    } else {
+      setAvailableTimes([]);
+    }
+  }, [formData.orderDate, openDates, openTimes]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -240,6 +264,30 @@ const CreateOrderModal = ({
                         value={formData.orderDate}
                         minDate={today}
                         maxDate={maxDate}
+                        tileDisabled={({ date }) => {
+                          const formattedDate = {
+                            year: date.getFullYear(),
+                            month: date.getMonth() + 1,
+                            day: date.getDate(),
+                          };
+                          const openDatesFormatted = openDates.map(
+                            (dateStr) => {
+                              const [month, day, year] = dateStr.split("/");
+                              return {
+                                year: parseInt(year),
+                                month: parseInt(month),
+                                day: parseInt(day),
+                              };
+                            }
+                          );
+                          return !openDatesFormatted.some((openDate) => {
+                            return (
+                              openDate.year === formattedDate.year &&
+                              openDate.month === formattedDate.month &&
+                              openDate.day === formattedDate.day
+                            );
+                          });
+                        }}
                       />
                     </div>
                     <div className="mb-4">
@@ -249,30 +297,27 @@ const CreateOrderModal = ({
                       >
                         Order Time
                       </label>
-                      <div className="grid grid-cols-4 gap-4">
-                        {[...Array(24)].map((_, index) => {
-                          const hour = index.toString().padStart(2, "0");
-                          return (
-                            <div
-                              key={index}
-                              className={`border border-gray-300 rounded px-3 py-2 text-center cursor-pointer ${
-                                formData.orderTime === `${hour}:00`
-                                  ? "bg-blue-500 text-white"
-                                  : ""
-                              }`}
-                              onClick={() =>
-                                handleChange({
-                                  target: {
-                                    name: "orderTime",
-                                    value: `${hour}:00`,
-                                  },
-                                })
-                              }
-                            >
-                              {`${hour}:00`}
-                            </div>
-                          );
-                        })}
+                      <div className="flex flex-wrap gap-2">
+                        {availableTimes.map((time, index) => (
+                          <div
+                            key={index}
+                            className={`border border-gray-300 rounded px-3 py-2 text-center cursor-pointer ${
+                              formData.orderTime === time
+                                ? "bg-blue-500 text-white"
+                                : ""
+                            }`}
+                            onClick={() =>
+                              handleChange({
+                                target: {
+                                  name: "orderTime",
+                                  value: time,
+                                },
+                              })
+                            }
+                          >
+                            {time}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>

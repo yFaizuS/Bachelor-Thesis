@@ -34,12 +34,19 @@ const CreateSparePartModal = ({ isOpen, closeModal, orderId }) => {
           quantity: parseInt(quantity),
         })
       );
-      await addSparePart(orderId, { spareParts: formattedSpareParts });
+
+      await addSparePart(orderId, formattedSpareParts);
       toast.success("Spare part added successfully!");
+      window.location.reload();
       closeModal();
     } catch (error) {
-      console.error("Error adding spare part: ", error);
-      toast.error("Failed to add spare part");
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+      }
     }
   };
 
