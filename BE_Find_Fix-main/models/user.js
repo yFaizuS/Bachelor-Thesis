@@ -40,6 +40,15 @@ class UserModel {
             return { id: userDoc.id, ...userDoc.data() };
         }
     }
+    static async getAdminUsers() {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('roleId', '==', '2'));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+            return [];
+        }
+        return snapshot.docs.map(doc => doc.data());
+    };
     // Model to Update User
     static async updateUser(id, updateData) {
         try {
