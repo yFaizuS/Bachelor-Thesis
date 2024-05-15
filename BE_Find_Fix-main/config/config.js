@@ -14,11 +14,11 @@ const {
 
 module.exports = {
   firebaseConfig: {
-    apiKey: API_KEY,
-    authDomain: AUTH_DOMAIN,
-    projectId: PROJECT_ID,
-    storageBucket: STORAGE_BUCKET,
-    messagingSenderId: MESSAGING_SENDER_ID,
-    appId: APP_ID,
+    apiKey: 'AIzaSyC6s8c-uVhiTMBdLGazyRUhyxZzmnwFNCQ',
+    authDomain: 'be-find-fix.firebaseapp.com',
+    projectId: 'be-find-fix',
+    storageBucket: 'be-find-fix.appspot.com',
+    messagingSenderId: '919834887234',
+    appId: '1:919834887234:web:accab0e14746d6524a59db',
   },
 };
